@@ -44,11 +44,19 @@ void loop() {
   }
 
   // --- Schranke schließen, wenn Objekt weg ---
+  static unsigned long closeTime = 0;
+  
   if ((distance > 25 || distance == 0) && gateOpen) {
-    delay(5000);
-    Serial.println("Kein Objekt mehr erkannt. Schranke schließt...");
-    gateServo.write(0);   // Schließen
-    gateOpen = false;
+    if (closeTime == 0) {
+      closeTime = millis();  // Start timer when object leaves
+    } else if (millis() - closeTime > 2000) {  // Wait 2 seconds
+      Serial.println("Kein Objekt mehr erkannt. Schranke schließt...");
+      gateServo.write(0);   // Schließen
+      gateOpen = false;
+      closeTime = 0;  // Reset timer
+    }
+  } else {
+    closeTime = 0;  // Reset timer if object detected again
   }
 
   delay(300); // Messintervall
